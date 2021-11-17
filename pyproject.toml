@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "new_music_dl"
+version = "0.1.0"
+description = "Download Friday new music (mp3) releases"
+authors = ["Yves Tumushimire <yvestumushimire@gmail.com>"]
+
+keywords = ["new music", "youtube", "spotify"]
+repository = "https://github.com/yvestumushimire/new_music_dl/"
+readme = "README.rst"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/yvestumushimire/new_music_dl/issues"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.26.0"
+click = "^8.0.3"
+Pillow = "^8.4.0"
+python-dotenv = "^0.19.2"
+pafy = "^0.5.5"
+youtube_dl = "^2021.6.6"
+wget = "^3.2"
+
+[tool.poetry.scripts]
+mp3dl = "new_music_dl.dl:download"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
