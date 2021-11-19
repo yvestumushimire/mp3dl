@@ -22,7 +22,7 @@ youtube_dl = "^2021.6.6"
 wget = "^3.2"
 
 [tool.poetry.scripts]
-mp3dl = "new_music_dl.dl:download"
+mp3dl = "new_music_dl.dl:cli"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

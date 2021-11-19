@@ -9,11 +9,23 @@ from new_music_dl.utils import (
 )
 
 
-@click.command()
-@click.option("--size", default=1, type=int, help="album number")
-def download(size=1):
+@click.group()
+def cli():
+    """
+    Download albums from new releases
+    """
+    pass
+
+
+@cli.command()
+@click.option("-o", "--offset", default=0, type=int, help="Strating position")
+@click.option(
+    "-l", "--limit", default=50, type=int, help="Number of albums to download"
+)
+@click.option("-c", "--country", default="US", type=str, help="Country code eg: RW")
+def download(offset: int, limit: int, country: str):
     """Download album"""
-    new_albums = get_new_releases_albums()
+    new_albums = get_new_releases_albums(offset, limit, country)
     for album in new_albums:
         album_details = get_album_details(album["href"])
         for track in album_details["tracks"]["items"]:

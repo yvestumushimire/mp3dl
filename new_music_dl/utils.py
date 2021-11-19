@@ -52,7 +52,7 @@ def get_spotify_access_token():
     return access_token
 
 
-def get_new_releases_albums():
+def get_new_releases_albums(offset: int = 0, limit: int = 50, country: str = "US"):
     """
     Gets the new releases albums from the Spotify API.
 
@@ -65,7 +65,7 @@ def get_new_releases_albums():
 
     # Get the new releases albums
     response = requests.get(
-        "https://api.spotify.com/v1/browse/new-releases",
+        f"https://api.spotify.com/v1/browse/new-releases?offset={offset}&country={country}&limit={limit}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     albums = response.json()["albums"]["items"]
