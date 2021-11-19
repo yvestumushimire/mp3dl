@@ -117,7 +117,11 @@ def search_video(query: str):
     )
 
     # Get the video url
-    video_url = response.json()["items"][0]["id"]["videoId"]
+    if response.json()["items"]:
+        video_url = response.json()["items"][0]["id"]["videoId"]
+    else:
+        print("No video found change key?")
+        video_url = None
 
     return video_url
 
@@ -130,22 +134,25 @@ def download_convert(video_id, cover_url, album_name, artist_name, track_name):
         .replace(")", "")
     )
     clean_album_name = album_name.replace("(", "").replace(")", "")
+    MP3FINAL = f"media/{path_name}.mp3"
     pafy.set_api_key(os.getenv("YOUTUBE_API_KEY"))
     video = pafy.new(f"https://www.youtube.com/watch?v={video_id}")
     bestaudio = video.getbestaudio(preftype="m4a")
     BESTFILE = f"media/{path_name}.{bestaudio.extension}"
-    # MP3FILE = f"media/{path_name}_del.mp3"
-    # cover_image = clean_album_name.replace(" ", "_")
-    # download_image(url=cover_url, filename=cover_image)
-    # MP3FINAL = f"media/{path_name}.mp3"
+    MP3FILE = f"media/{path_name}_del.mp3"
+    cover_image = clean_album_name.replace(" ", "_")
+    if os.path.isfile(cover_image):
+        print("File already exists, skipping")
+    else:
+        download_image(url=cover_url, filename=cover_image)
     bestaudio.download(BESTFILE)
     print("+++++=======================Done")
-    # cover_image_path = f"media/{cover_image}.jpg"
-    # os.system(
-    #     f'ffmpeg -i {BESTFILE} -vn -ab 128k -ar 44100 -metadata album="{clean_album_name}" -metadata artist="{artist_name}" -y {MP3FILE}'
-    # )
-    # os.system(
-    #     f"ffmpeg -i {MP3FILE} -i {cover_image_path} -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v title='Album cover' -metadata:s:v comment='Cover (front)' -y {MP3FINAL}"
-    # )
-    # os.remove(BESTFILE)
-    # os.remove(MP3FILE)
+    cover_image_path = f"media/{cover_image}.jpg"
+    os.system(
+        f'ffmpeg -i {BESTFILE} -vn -ab 128k -ar 44100 -metadata album="{clean_album_name}" -metadata artist="{artist_name}" -y {MP3FILE}'
+    )
+    os.system(
+        f"ffmpeg -i {MP3FILE} -i {cover_image_path} -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v title='Album cover' -metadata:s:v comment='Cover (front)' -y {MP3FINAL}"
+    )
+    os.remove(BESTFILE)
+    os.remove(MP3FILE)
