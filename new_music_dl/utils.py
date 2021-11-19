@@ -141,7 +141,7 @@ def download_convert(video_id, cover_url, album_name, artist_name, track_name):
     BESTFILE = f"media/{path_name}.{bestaudio.extension}"
     MP3FILE = f"media/{path_name}_del.mp3"
     cover_image = clean_album_name.replace(" ", "_")
-    if os.path.isfile(cover_image):
+    if os.path.isfile(f"{cover_image}.jpg"):
         print("File already exists, skipping")
     else:
         download_image(url=cover_url, filename=cover_image)
