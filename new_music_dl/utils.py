@@ -27,7 +27,7 @@ def download_image(
 
     """
     # Download the image
-    wget.download(url, f"media/{filename}.jpg")
+    wget.download(url, f"media/covers/{filename}.jpg")
     return f"media/{filename}.jpg"
 
 
@@ -154,6 +154,8 @@ def download_convert(
         f"{track_name}_{album_name}_{artist_name}".replace(" ", "_")
         .replace("(", "")
         .replace(")", "")
+        .replace(".", "")
+        .replace("'", "")
     )
     clean_album_name = album_name.replace("(", "").replace(")", "")
     MP3FINAL = f"media/{path_name}.mp3"
@@ -163,13 +165,13 @@ def download_convert(
     BESTFILE = f"media/{path_name}.{bestaudio.extension}"
     MP3FILE = f"media/{path_name}_del.mp3"
     cover_image = clean_album_name.replace(" ", "_")
-    if os.path.isfile(f"{cover_image}.jpg"):
+    if os.path.isfile(f"media/covers/{cover_image}.jpg"):
         print("File already exists, skipping")
     else:
         download_image(url=cover_url, filename=cover_image)
     bestaudio.download(BESTFILE)
     print("+++++=======================Done")
-    cover_image_path = f"media/{cover_image}.jpg"
+    cover_image_path = f"media/covers/{cover_image}.jpg"
     os.system(
         f'ffmpeg -i {BESTFILE} -vn -ab 128k -ar 44100 -metadata album="{clean_album_name}" -metadata artist="{artist_name}" -metadata track="{track_number}/{total_tracks}" -metadata title="{track_name}" -metadata date="{year}" -metadata comment="source (https://github.com/yvestumushimire/mp3dl)"  -y {MP3FILE}'
     )

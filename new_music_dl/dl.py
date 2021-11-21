@@ -38,6 +38,8 @@ def newmusicfriday(offset: int, limit: int, country: str):
                 )
                 .replace("(", "")
                 .replace(")", "")
+                .replace(".", "")
+                .replace("'", "")
             )
             if os.path.isfile(f"media/{path_name}.mp3"):
                 print("File already exists, skipping")
@@ -52,6 +54,9 @@ def newmusicfriday(offset: int, limit: int, country: str):
                                 album_name=album_details["name"],
                                 artist_name=track_artists,
                                 track_name=track_name,
+                                track_number=track["track_number"],
+                                total_tracks=album_details["tracks"]["total"],
+                                year=album_details["release_date"].split("-")[0],
                             )
                         except Exception as e:
                             print(f"======>{e}g")
