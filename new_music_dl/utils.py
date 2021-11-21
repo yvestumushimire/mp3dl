@@ -73,6 +73,19 @@ def get_new_releases_albums(offset: int = 0, limit: int = 50, country: str = "US
     return albums
 
 
+def get_plalist_tracks(playlist_id: str) -> list:
+    # Get the Spotify access token
+    access_token = get_spotify_access_token()
+
+    # Get the playlist tracks
+    response = requests.get(
+        f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+
+    return response.json()["items"]
+
+
 def get_album_details(url: str):
     """
     Gets the tracks from an album from the Spotify API.
@@ -126,7 +139,16 @@ def search_video(query: str):
     return video_url
 
 
-def download_convert(video_id, cover_url, album_name, artist_name, track_name):
+def download_convert(
+    video_id,
+    cover_url,
+    album_name,
+    artist_name,
+    track_name,
+    track_number,
+    total_tracks,
+    year,
+):
     # Download the video
     path_name = (
         f"{track_name}_{album_name}_{artist_name}".replace(" ", "_")
@@ -149,10 +171,10 @@ def download_convert(video_id, cover_url, album_name, artist_name, track_name):
     print("+++++=======================Done")
     cover_image_path = f"media/{cover_image}.jpg"
     os.system(
-        f'ffmpeg -i {BESTFILE} -vn -ab 128k -ar 44100 -metadata album="{clean_album_name}" -metadata artist="{artist_name}" -y {MP3FILE}'
+        f'ffmpeg -i {BESTFILE} -vn -ab 128k -ar 44100 -metadata album="{clean_album_name}" -metadata artist="{artist_name}" -metadata track="{track_number}/{total_tracks}" -metadata title="{track_name}" -metadata date="{year}" -metadata comment="source (https://github.com/yvestumushimire/mp3dl)"  -y {MP3FILE}'
     )
     os.system(
-        f"ffmpeg -i {MP3FILE} -i {cover_image_path} -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v title='Album cover' -metadata:s:v comment='Cover (front)' -y {MP3FINAL}"
+        f"ffmpeg -i {MP3FILE} -i {cover_image_path} -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v comment='...' -y {MP3FINAL}"
     )
     os.remove(BESTFILE)
     os.remove(MP3FILE)
