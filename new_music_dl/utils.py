@@ -130,10 +130,10 @@ def search_video(query: str):
     )
 
     # Get the video url
-    if response.json()["items"]:
+    try:
         video_url = response.json()["items"][0]["id"]["videoId"]
-    else:
-        print("No video found change key?")
+    except Exception as e:
+        print(f"No video found change key? : {e}")
         video_url = None
 
     return video_url

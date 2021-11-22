@@ -109,3 +109,46 @@ def playlist(playlist_id: str):
             except Exception as e:
                 print(f"Error: {e}")
                 continue
+
+
+@cli.command()
+@click.option("-a", "--album", type=str, help="Album ID")
+def album(album: str):
+    """
+    Download album
+
+    """
+    url = f"https://api.spotify.com/v1/albums/{album}"
+    album_details = get_album_details(url)
+    for track in album_details["tracks"]["items"]:
+        track_artists = ", ".join(a["name"] for a in album_details["artists"])
+        track_name = track["name"]
+        path_name = (
+            f"{track_name}_{album_details['name']}_{track_artists}".replace(" ", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace(".", "")
+            .replace("'", "")
+        )
+        if os.path.isfile(f"media/{path_name}.mp3"):
+            print("File already exists, skipping")
+        else:
+            try:
+                video_url = search_video(f"{track_artists} - {track_name}")
+                if video_url is not None:
+                    try:
+                        download_convert(
+                            video_id=video_url,
+                            cover_url=album_details["images"][0]["url"],
+                            album_name=album_details["name"],
+                            artist_name=track_artists,
+                            track_name=track_name,
+                            track_number=track["track_number"],
+                            total_tracks=album_details["tracks"]["total"],
+                            year=album_details["release_date"].split("-")[0],
+                        )
+                    except Exception as e:
+                        print(f"======>{e}g")
+            except Exception as e:
+                print(f"Error: {e}")
+                continue
