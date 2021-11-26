@@ -6,7 +6,7 @@ authors = ["Yves Tumushimire <yvestumushimire@gmail.com>"]
 
 keywords = ["new music", "youtube", "spotify"]
 repository = "https://github.com/yvestumushimire/new_music_dl/"
-readme = "README.rst"
+readme = "README.md"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/yvestumushimire/new_music_dl/issues"
