@@ -8,6 +8,7 @@ import requests
 from dotenv import load_dotenv
 import wget
 import pafy
+from concurrent.futures import ThreadPoolExecutor
 
 
 from new_music_dl.const import BASE_DIR
@@ -151,13 +152,19 @@ def download_convert(
 ):
     # Download the video
     path_name = (
-        f"{track_name}_{album_name}_{artist_name}".replace(" ", "_")
+        f"{track_name}_{artist_name}".replace(" ", "_")
         .replace("(", "")
         .replace(")", "")
         .replace(".", "")
         .replace("'", "")
     )
-    clean_album_name = album_name.replace("(", "").replace(")", "")
+    clean_album_name = (
+        album_name.replace("(", "")
+        .replace(")", "")
+        .replace(".", "")
+        .replace("'", "")
+        .replace("&", "and")
+    )
     MP3FINAL = f"media/{path_name}.mp3"
     pafy.set_api_key(os.getenv("YOUTUBE_API_KEY"))
     video = pafy.new(f"https://www.youtube.com/watch?v={video_id}")
@@ -166,10 +173,14 @@ def download_convert(
     MP3FILE = f"media/{path_name}_del.mp3"
     cover_image = clean_album_name.replace(" ", "_")
     if os.path.isfile(f"media/covers/{cover_image}.jpg"):
-        print("File already exists, skipping")
+        print("cover already exists, skipping")
     else:
         download_image(url=cover_url, filename=cover_image)
-    bestaudio.download(BESTFILE)
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        try:
+            pool.submit(bestaudio.download(BESTFILE))
+        except Exception as e:
+            print(f"Error downloading {BESTFILE}: {e}")
     print("+++++=======================Done")
     cover_image_path = f"media/covers/{cover_image}.jpg"
     os.system(
@@ -180,3 +191,70 @@ def download_convert(
     )
     os.remove(BESTFILE)
     os.remove(MP3FILE)
+
+
+def download_song(album_details, track):
+    track_artists = ", ".join(a["name"] for a in album_details["artists"])
+    track_name = track["name"]
+    path_name = (
+        f"{track_name}_{track_artists}".replace(" ", "_")
+        .replace("(", "")
+        .replace(")", "")
+        .replace(".", "")
+        .replace("'", "")
+    )
+    if os.path.isfile(f"media/{path_name}.mp3"):
+        print("File already exists, skipping")
+    else:
+        try:
+            video_url = search_video(f"{track_artists} - {track_name}")
+            if video_url is not None:
+                try:
+                    download_convert(
+                        video_id=video_url,
+                        cover_url=album_details["images"][0]["url"],
+                        album_name=album_details["name"],
+                        artist_name=track_artists,
+                        track_name=track_name,
+                        track_number=track["track_number"],
+                        total_tracks=album_details["tracks"]["total"],
+                        year=album_details["release_date"].split("-")[0],
+                    )
+                except Exception as e:
+                    print(f"======>{e}g")
+        except Exception as e:
+            print(f"Error: {e}")
+
+
+def download_playlist_song(item):
+    track_artists = ", ".join(a["name"] for a in item["track"]["artists"])
+    track_name = item["track"]["name"]
+    album = item["track"]["album"]
+    path_name = (
+        f"{track_name}_{track_artists}".replace(" ", "_")
+        .replace("(", "")
+        .replace(")", "")
+        .replace(".", "")
+        .replace("'", "")
+    )
+    if os.path.isfile(f"media/{path_name}.mp3"):
+        print("File already exists, skipping")
+    else:
+        try:
+            video_url = search_video(f"{track_artists} - {track_name}")
+            if video_url is not None:
+                try:
+                    download_convert(
+                        video_id=video_url,
+                        cover_url=album["images"][0]["url"],
+                        album_name=album["name"],
+                        artist_name=track_artists,
+                        track_name=track_name,
+                        track_number=item["track"]["track_number"],
+                        total_tracks=album["total_tracks"],
+                        year=album["release_date"].split("-")[0],
+                    )
+                except Exception as e:
+                    print(f"======>{e}g")
+        except Exception as e:
+            print(f"Error: {e}")
