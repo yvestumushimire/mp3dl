@@ -17,9 +17,11 @@ requests = "^2.26.0"
 click = "^8.0.3"
 Pillow = "^8.4.0"
 python-dotenv = "^0.19.2"
-pafy = "^0.5.5"
 youtube_dl = "^2021.6.6"
 wget = "^3.2"
+cloudinary = "^1.28.0"
+pafy = "^0.5.5"
+pytube = {git = "https://github.com/pytube/pytube"}
 
 [tool.poetry.scripts]
 mp3dl = "new_music_dl.dl:cli"

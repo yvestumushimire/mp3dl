@@ -8,18 +8,23 @@ import requests
 from dotenv import load_dotenv
 import wget
 import pafy
+from pytube import YouTube, Search
 from concurrent.futures import ThreadPoolExecutor
+import cloudinary
+import cloudinary.uploader
 
+cloudinary.config(
+    cloud_name="dlqwpzgkf",
+    api_key="223434439919259",
+    api_secret="c5WhGEZBGswLNTKcZP6TnJKmhoE",
+)
 
 from new_music_dl.const import BASE_DIR
 
 load_dotenv()
 
 
-def download_image(
-    url: str,
-    filename: str,
-) -> str:
+def download_image(url: str, filename: str,) -> str:
     """
     Downloads an image from the internet.
 
@@ -102,10 +107,7 @@ def get_album_details(url: str):
     access_token = get_spotify_access_token()
 
     # Get the album tracks
-    response = requests.get(
-        url,
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
+    response = requests.get(url, headers={"Authorization": f"Bearer {access_token}"},)
 
     return response.json()
 
@@ -140,6 +142,26 @@ def search_video(query: str):
     return video_url
 
 
+def download_video(video_id, path_name, track_name, artist_name):
+    path_name = (
+        f"{track_name}_{artist_name}".replace(" ", "_")
+        .replace("(", "")
+        .replace(")", "")
+        .replace(".", "")
+        .replace("'", "")
+    )
+    # pafy.set_api_key(os.getenv("YOUTUBE_API_KEY"))
+    print(f"Downloading {track_name}")
+    # video = YouTube(f"https://www.youtube.com/watch?v={video_id}")
+    print("....")
+    if os.path.isfile(f"media/{path_name}.mp4"):
+        print(f"{track_name} already downloaded")
+        return
+    video_id.streams.filter(progressive=True).get_highest_resolution().download(
+        output_path="media", filename=f"{path_name}.mp4"
+    )
+
+
 def download_convert(
     video_id,
     cover_url,
@@ -167,11 +189,16 @@ def download_convert(
     )
     MP3FINAL = f"media/{path_name}.mp3"
     pafy.set_api_key(os.getenv("YOUTUBE_API_KEY"))
-    video = pafy.new(f"https://www.youtube.com/watch?v={video_id}")
-    bestaudio = video.getbestaudio(preftype="m4a")
-    BESTFILE = f"media/{path_name}.{bestaudio.extension}"
+    video = YouTube(f"https://www.youtube.com/watch?v={video_id}")
+    bestaudio = (
+        video.streams.filter(only_audio=True)
+        .first()
+        .download(output_path="media", filename=f"{path_name}_og.mp3")
+    )
+    BESTFILE = f"media/{path_name}_og.mp3"
     MP3FILE = f"media/{path_name}_del.mp3"
     cover_image = clean_album_name.replace(" ", "_")
+    other_cover = "media/covers/promo.png"
     if os.path.isfile(f"media/covers/{cover_image}.jpg"):
         print("cover already exists, skipping")
     else:
@@ -187,10 +214,11 @@ def download_convert(
         f'ffmpeg -i {BESTFILE} -vn -ab 128k -ar 44100 -metadata album="{clean_album_name}" -metadata artist="{artist_name}" -metadata track="{track_number}/{total_tracks}" -metadata title="{track_name}" -metadata date="{year}" -metadata comment="source (https://github.com/yvestumushimire/mp3dl)"  -y {MP3FILE}'
     )
     os.system(
-        f"ffmpeg -i {MP3FILE} -i {cover_image_path} -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v comment='...' -y {MP3FINAL}"
+        f"ffmpeg -i {MP3FILE} -i {other_cover} -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v comment='...' -y {MP3FINAL}"
     )
     os.remove(BESTFILE)
     os.remove(MP3FILE)
+    # cloudinary.uploader.upload(MP3FINAL, resource_type="audio")
 
 
 def download_song(album_details, track):
@@ -227,6 +255,40 @@ def download_song(album_details, track):
 
 
 def download_playlist_song(item):
+    track_artists = ", ".join(a["name"] for a in item["track"]["artists"])
+    track_name = item["track"]["name"]
+    album = item["track"]["album"]
+    path_name = (
+        f"{track_name}_{track_artists}".replace(" ", "_")
+        .replace("(", "")
+        .replace(")", "")
+        .replace(".", "")
+        .replace("'", "")
+    )
+    if os.path.isfile(f"media/{path_name}.mp4"):
+        print("File already exists, skipping")
+    else:
+        try:
+            s = Search(f"{track_artists} - {track_name}")
+            if len(s.results) > 0:
+                video_url = s.results[0]
+            else:
+                video_url = None
+            if video_url is not None:
+                try:
+                    download_video(
+                        video_id=video_url,
+                        artist_name=track_artists,
+                        track_name=track_name,
+                        path_name=path_name,
+                    )
+                except Exception as e:
+                    print(f"======>{e}g")
+        except Exception as e:
+            print(f"Error: {e}")
+
+
+def download_playlist_video(item):
     track_artists = ", ".join(a["name"] for a in item["track"]["artists"])
     track_name = item["track"]["name"]
     album = item["track"]["album"]
