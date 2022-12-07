@@ -10,14 +10,8 @@ import wget
 import pafy
 from pytube import YouTube, Search
 from concurrent.futures import ThreadPoolExecutor
-import cloudinary
-import cloudinary.uploader
 
-cloudinary.config(
-    cloud_name="dlqwpzgkf",
-    api_key="223434439919259",
-    api_secret="c5WhGEZBGswLNTKcZP6TnJKmhoE",
-)
+
 
 from new_music_dl.const import BASE_DIR
 
